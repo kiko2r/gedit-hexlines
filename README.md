@@ -35,52 +35,55 @@ See [Enabling the optional features](#enabling-the-optional-features).
 
 ## Requirements
 
-- gedit with Python plugin support: gedit 3.8 up to gedit 47.
-- PyGObject **older than 3.52** (usually installed together with gedit).
+- gedit 3.x or newer (tested with gedit 46).
+- To build the plugin: a C compiler, `pkg-config` and the gedit development
+  files. The install script tells you which packages to install if they are
+  missing:
 
-You can check your PyGObject version with:
+| Distribution     | Packages                                            |
+|------------------|-----------------------------------------------------|
+| Debian / Ubuntu  | `sudo apt install build-essential pkg-config gedit-dev` |
+| Fedora           | `sudo dnf install gcc pkgconf gedit-devel`          |
+| Arch / Manjaro   | `sudo pacman -S --needed base-devel gedit`          |
+| openSUSE         | `sudo zypper install gcc pkg-config gedit-devel`    |
 
-```bash
-python3 -c "import gi; print(gi.__version__)"
-```
+### Why C and not Python?
 
-### Newer distributions (GNOME 48 and later)
-
-PyGObject 3.52 and later broke the Python plugin loader of gedit (libpeas 1),
-and gedit 49 dropped Python plugins altogether. On these systems gedit reports
-that the `python3` plugin loader could not be found, and **no** Python plugin
-works. See the
+The plugin used to be written in Python, but PyGObject 3.52 and later broke
+the Python plugin loader of gedit, and gedit 49 dropped Python plugins
+altogether (gedit reports that the `python3` plugin loader could not be
+found). See the
 [gedit announcement](https://gedit-text-editor.org/blog/2025-04-30-no-more-pythons-in-gedit.html).
 
-This affects, among others, Fedora 42+, Arch Linux / Manjaro and recent Ubuntu
-releases. Known to work: Ubuntu 24.04 LTS (gedit 46, PyGObject 3.48).
-
-If you are on one of these systems you can:
-
-- use the C version of the plugin, in the
-  [`c-port`](https://github.com/kiko2r/gedit-hexlines/tree/c-port) branch, or
-- use the [Flatpak version of gedit](https://flathub.org/apps/org.gnome.gedit),
-  as long as it still ships an older PyGObject, installing the plugin in
-  `~/.var/app/org.gnome.gedit/data/gedit/plugins` instead.
+The Python version is kept in the [`python/`](python) folder. It still works on
+gedit 3.8–47 with PyGObject older than 3.52, and in the
+[Flatpak version of gedit](https://flathub.org/apps/org.gnome.gedit) as long
+as it ships an older PyGObject.
 
 ## Installation
 
 ### Using the install script
 
 ```bash
-git clone https://github.com/kiko2r/gedit-hexlines.git
+git clone -b c-port https://github.com/kiko2r/gedit-hexlines.git
 cd gedit-hexlines
 ./install.sh
 ```
 
-The script copies `hexlines.plugin` and `hexlines.py` to
-`~/.local/share/gedit/plugins`.
+The script compiles the plugin and copies `libhexlines.so` and
+`hexlines.plugin` to `~/.local/share/gedit/plugins`. If gedit is installed as
+a Flatpak, it also copies the Python version to
+`~/.var/app/org.gnome.gedit/data/gedit/plugins`.
 
-### Manual installation
+The plugin has to be compiled for the gedit version installed on each
+machine, so run `./install.sh` again after upgrading gedit.
+
+### System-wide installation (packagers)
 
 ```bash
-mkdir -p ~/.local/share/gedit/plugins
-cp hexlines.plugin hexlines.py ~/.local/share/gedit/plugins/
+meson setup build --prefix=/usr
+meson compile -C build
+sudo meson install -C build
 ```
 
 ### Enabling the plugin
@@ -95,24 +98,22 @@ You will probably want to turn off gedit's own line numbers
 ## Enabling the optional features
 
 Both optional features are disabled by default. To enable one, open
-`hexlines.py` and uncomment its line near the top of the file:
+`hexlines.c` and replace `NULL` with the prefix near the top of the file:
 
-```python
-IGNORE = None
-# IGNORE = "#"   # <- uncomment to skip lines starting with "#"
+```c
+static const gchar *const IGNORE = "#";  /* skip lines starting with "#" */
 
-BLOCK = None
-# BLOCK = "@"    # <- uncomment to ignore blocks between "@" lines
+static const gchar *const BLOCK = "@";   /* ignore blocks between "@" lines */
 ```
 
-You can also change `"#"` or `"@"` to any other prefix.
+You can also use any other prefix instead of `"#"` or `"@"`.
 
 Then reinstall the plugin (`./install.sh`) and restart gedit.
 
 ## Uninstall
 
 ```bash
-rm ~/.local/share/gedit/plugins/hexlines.plugin ~/.local/share/gedit/plugins/hexlines.py
+rm ~/.local/share/gedit/plugins/hexlines.plugin ~/.local/share/gedit/plugins/libhexlines.so
 ```
 
 ## License

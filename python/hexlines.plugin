@@ -1,0 +1,10 @@
+[Plugin]
+Loader=python3
+Module=hexlines
+IAge=3
+Name=Hexadecimal Line Numbers
+Description=Shows line numbers in hexadecimal in the gutter.
+Authors=Francisco J. Romero Ramírez <fj.romero@uco.es>
+Copyright=Copyright © 2026 Francisco J. Romero Ramírez
+Website=https://github.com/kiko2r/gedit-hexlines
+Version=1.0

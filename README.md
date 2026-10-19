@@ -35,8 +35,33 @@ See [Enabling the optional features](#enabling-the-optional-features).
 
 ## Requirements
 
-- gedit with Python plugin support (gedit 3.x and newer, including gedit 46+).
-- PyGObject (usually installed together with gedit).
+- gedit with Python plugin support: gedit 3.8 up to gedit 47.
+- PyGObject **older than 3.52** (usually installed together with gedit).
+
+You can check your PyGObject version with:
+
+```bash
+python3 -c "import gi; print(gi.__version__)"
+```
+
+### Newer distributions (GNOME 48 and later)
+
+PyGObject 3.52 and later broke the Python plugin loader of gedit (libpeas 1),
+and gedit 49 dropped Python plugins altogether. On these systems gedit reports
+that the `python3` plugin loader could not be found, and **no** Python plugin
+works. See the
+[gedit announcement](https://gedit-text-editor.org/blog/2025-04-30-no-more-pythons-in-gedit.html).
+
+This affects, among others, Fedora 42+, Arch Linux / Manjaro and recent Ubuntu
+releases. Known to work: Ubuntu 24.04 LTS (gedit 46, PyGObject 3.48).
+
+If you are on one of these systems you can:
+
+- use the C version of the plugin, in the
+  [`c-port`](https://github.com/kiko2r/gedit-hexlines/tree/c-port) branch, or
+- use the [Flatpak version of gedit](https://flathub.org/apps/org.gnome.gedit),
+  as long as it still ships an older PyGObject, installing the plugin in
+  `~/.var/app/org.gnome.gedit/data/gedit/plugins` instead.
 
 ## Installation
 
